@@ -186,8 +186,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, currentUser }) => {
                             )}
 
                             {/* Step 2: Photo Details */}
+                            {/* Step 2: Photo Details */}
                             {step === 2 && (
-                                <div style={{ display: 'flex', flexDirection: 'row', minHeight: '500px' }}>
+                                <div className="modal-content" style={{ minHeight: '500px' }}>
                                     <div style={{ flex: 1.2, background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', position: 'relative' }}>
                                         <img
                                             src={preview}

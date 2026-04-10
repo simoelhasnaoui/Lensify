@@ -25,8 +25,8 @@ const Hero = ({ onTagClick, onSearch }) => {
                     />
                 </div>
 
-                <div className="hero-tags">
-                    <span className="tag-label">Trending:</span>
+                <div className="hero-tags" style={{ flexWrap: 'wrap', gap: '1rem', marginTop: '1rem' }}>
+                    <span className="tag-label" style={{ marginBottom: '0.5rem' }}>Trending:</span>
                     <button className="tag" onClick={() => onTagClick && onTagClick('Nature')}>Nature</button>
                     <button className="tag" onClick={() => onTagClick && onTagClick('Architecture')}>Architecture</button>
                     <button className="tag" onClick={() => onTagClick && onTagClick('Street')}>Street</button>

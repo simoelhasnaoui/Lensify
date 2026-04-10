@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Upload } from 'lucide-react';
+import { Search, Bell, Upload, Menu, X } from 'lucide-react';
 import Logo from './Logo';
 import AuthModal from './AuthModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser, onLogin, onLogout }) => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -9,6 +10,7 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
     const [authMode, setAuthMode] = useState('login');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -43,14 +45,14 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
                         <span className="md-inline" style={{ letterSpacing: '-0.03em' }}>Lensify</span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                    <div className="md-hide" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                         <a href="/" className="nav-link" onClick={(e) => { e.preventDefault(); onHomeClick(); }}>Discover</a>
                         <a href="/" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate('licensing'); }}>Licensing</a>
                         <a href="/" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate('quests'); }}>Quests</a>
                     </div>
                 </div>
 
-                <div style={{ flex: 1, maxWidth: '400px', margin: '0 2rem', position: 'relative' }}>
+                <div className="md-hide" style={{ flex: 1, maxWidth: '400px', margin: '0 2rem', position: 'relative' }}>
                     <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#666' }} />
                     <input
                         type="text"
@@ -189,8 +191,85 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
                             </div>
                         </div>
                     )}
+
+                    <div className="md-show">
+                        <button 
+                            className="nav-link" 
+                            style={{ padding: '0.5rem' }}
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        >
+                            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                    </div>
                 </div>
             </nav>
+
+            {/* Mobile Menu Overlay */}
+            <AnimatePresence>
+                {isMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="glass"
+                        style={{
+                            position: 'fixed',
+                            top: '72px',
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 99,
+                            padding: '2rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '2rem',
+                            background: 'rgba(0,0,0,0.95)',
+                            backdropFilter: 'blur(10px)'
+                        }}
+                    >
+                        <div style={{ position: 'relative' }}>
+                            <Search style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', color: '#666' }} />
+                            <input
+                                type="text"
+                                placeholder="Search everything"
+                                className="search-input"
+                                style={{ padding: '1rem 1rem 1rem 3.5rem', fontSize: '1.1rem' }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        onSearch && onSearch(e.currentTarget.value);
+                                        setIsMenuOpen(false);
+                                    }
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <a href="/" className="nav-link" style={{ fontSize: '1.2rem' }} onClick={(e) => { e.preventDefault(); onHomeClick(); setIsMenuOpen(false); }}>Discover</a>
+                            <a href="/" className="nav-link" style={{ fontSize: '1.2rem' }} onClick={(e) => { e.preventDefault(); onNavigate('licensing'); setIsMenuOpen(false); }}>Licensing</a>
+                            <a href="/" className="nav-link" style={{ fontSize: '1.2rem' }} onClick={(e) => { e.preventDefault(); onNavigate('quests'); setIsMenuOpen(false); }}>Quests</a>
+                        </div>
+
+                        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <button
+                                onClick={() => handleProtectedAction(() => { onUploadClick(); setIsMenuOpen(false); })}
+                                className="profile-btn primary"
+                                style={{ padding: '1rem' }}
+                            >
+                                <Upload size={20} style={{ marginRight: '0.5rem' }} /> Upload Photo
+                            </button>
+                            {!currentUser && (
+                                <button
+                                    className="profile-btn secondary"
+                                    style={{ padding: '1rem' }}
+                                    onClick={() => { openAuth('login'); setIsMenuOpen(false); }}
+                                >
+                                    Log In / Sign Up
+                                </button>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <AuthModal
                 isOpen={isAuthOpen}
