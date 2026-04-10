@@ -17,21 +17,21 @@ const Footer = () => {
                     <div className="footer-links">
                         <div className="link-group">
                             <h3>Community</h3>
-                            <a href="#">Editor's Choice</a>
-                            <a href="#">Quests</a>
-                            <a href="#">Portfolio</a>
+                            <a href="/">Editor's Choice</a>
+                            <a href="/">Quests</a>
+                            <a href="/">Portfolio</a>
                         </div>
                         <div className="link-group">
                             <h3>Licensing</h3>
-                            <a href="#">About Licensing</a>
-                            <a href="#">Become a Contributor</a>
-                            <a href="#">Submission Requirements</a>
+                            <a href="/">About Licensing</a>
+                            <a href="/">Become a Contributor</a>
+                            <a href="/">Submission Requirements</a>
                         </div>
                         <div className="link-group">
                             <h3>Company</h3>
-                            <a href="#">About Us</a>
-                            <a href="#">Careers</a>
-                            <a href="#">Press</a>
+                            <a href="/">About Us</a>
+                            <a href="/">Careers</a>
+                            <a href="/">Press</a>
                         </div>
                     </div>
                 </div>
@@ -41,9 +41,9 @@ const Footer = () => {
                 <div className="footer-bottom">
                     <p className="copyright">&copy; 2026 Lensify. All rights reserved.</p>
                     <div className="social-links">
-                        <a href="#">Twitter</a>
-                        <a href="#">Facebook</a>
-                        <a href="#">Instagram</a>
+                        <a href="/">Twitter</a>
+                        <a href="/">Facebook</a>
+                        <a href="/">Instagram</a>
                         <button
                             onClick={() => {
                                 if (window.confirm('Are you sure you want to reset all app data (uploads, accounts, likes)?')) {

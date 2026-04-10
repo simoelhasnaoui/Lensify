@@ -338,7 +338,7 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }) => {
 
                                     {!isLoginMode && (
                                         <p style={{ marginTop: '2rem', fontSize: '0.75rem', color: '#555', textAlign: 'center', lineHeight: 1.5 }}>
-                                            By creating an account, you agree to our <a href="#" style={{ color: '#888' }}>Terms of Service</a> and <a href="#" style={{ color: '#888' }}>Privacy Policy</a>.
+                                            By creating an account, you agree to our <a href="/" style={{ color: '#888' }}>Terms of Service</a> and <a href="/" style={{ color: '#888' }}>Privacy Policy</a>.
                                         </p>
                                     )}
                                 </>

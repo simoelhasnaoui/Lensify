@@ -44,9 +44,9 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                        <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); onHomeClick(); }}>Discover</a>
-                        <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate('licensing'); }}>Licensing</a>
-                        <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate('quests'); }}>Quests</a>
+                        <a href="/" className="nav-link" onClick={(e) => { e.preventDefault(); onHomeClick(); }}>Discover</a>
+                        <a href="/" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate('licensing'); }}>Licensing</a>
+                        <a href="/" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate('quests'); }}>Quests</a>
                     </div>
                 </div>
 
