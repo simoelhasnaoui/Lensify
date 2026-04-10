@@ -7,12 +7,10 @@ import UploadModal from './components/UploadModal';
 import Licensing from './components/Licensing';
 import Quests from './components/Quests';
 import Footer from './components/Footer';
-import {
-  getCurrentUser, setCurrentUser as persistUser, clearCurrentUser,
-  getUploads, addUpload,
-  getLikes, toggleLike as storageToggleLike,
-  downloadImage, deleteUpload,
+import { 
+  downloadImage 
 } from './utils/storage';
+import { supabase } from './utils/supabase';
 import './App.css';
 
 const INITIAL_PHOTOS = [
@@ -128,56 +126,92 @@ const INITIAL_PHOTOS = [
   }
 ];
 
-/** Merge persisted like data into a photo list, relative to the current user. */
-function hydratePhotos(photos, likesMap, userId) {
-  return photos.map(p => {
-    const entry = likesMap[p.id];
-    const baseLikes = p.baseLikes ?? 0;
-    if (entry) {
-      return {
-        ...p,
-        likes: baseLikes + entry.count,
-        isLiked: userId ? entry.likedBy.includes(userId) : false,
-      };
-    }
-    return { ...p, likes: baseLikes, isLiked: false };
-  });
-}
+// Legacy local-storage hydration logic removed in favor of Supabase fetching
 
 function App() {
-  // ── Session ──────────────────────────────────────────────────
-  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
-
-  const handleLogin = useCallback((user) => {
-    // user comes from AuthModal as { id, name, email, avatar }
-    const sessionUser = { id: user.id, name: user.name, avatar: user.avatar };
-    setCurrentUser(sessionUser);
-    persistUser(sessionUser);
-    // Re-hydrate photos so like hearts reflect this user
-    setPhotos(prev => hydratePhotos(prev, getLikes(), sessionUser.id));
+  const [currentUser, setCurrentUser] = useState(null);
+  
+  const handleLogin = useCallback(() => {
+    // Auth state is handled by onAuthStateChange listener
+    // This exists to maintain prop compatibility with Navbar/AuthModal
   }, []);
-
-  const handleLogout = useCallback(() => {
-    setCurrentUser(null);
-    clearCurrentUser();
-    // Clear like hearts (counts stay)
-    setPhotos(prev => prev.map(p => ({ ...p, isLiked: false })));
-  }, []);
-
-  // ── Photos (initial + uploads, hydrated with likes) ────────
-  const [photos, setPhotos] = useState(() => {
-    const uploads = getUploads();
-    const likesMap = getLikes();
-    const userId = getCurrentUser()?.id;
-    const all = [...uploads, ...INITIAL_PHOTOS];
-    return hydratePhotos(all, likesMap, userId);
-  });
-
+  const [photos, setPhotos] = useState([]);
   const [currentView, setCurrentView] = useState('discovery');
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // ── Supabase Initialization ────────────────────────────────
+  React.useEffect(() => {
+    // 1. Check for active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const user = {
+          id: session.user.id,
+          name: session.user.user_metadata.name || session.user.email,
+          avatar: session.user.user_metadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+        };
+        setCurrentUser(user);
+      }
+    });
+
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const user = {
+          id: session.user.id,
+          name: session.user.user_metadata.name || session.user.email,
+          avatar: session.user.user_metadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+        };
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    // 3. Initial photos fetch
+    fetchPhotos();
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchPhotos = async () => {
+    try {
+      // Fetch photos + profiles + likes count
+      const { data, error } = await supabase
+        .from('photos')
+        .select(`
+          *,
+          profiles:user_id (name, avatar_url),
+          likes (user_id)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform Supabase data to local app format
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const transformed = data.map(p => ({
+        id: p.id,
+        url: p.url,
+        title: p.title,
+        userName: p.profiles?.name || 'Anonymous',
+        userAvatar: p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`,
+        category: p.category,
+        tags: p.tags || [],
+        likes: p.likes?.length || 0,
+        isLiked: p.likes?.some(l => l.user_id === userId) || false,
+        userId: p.user_id
+      }));
+
+      // Combine with initial static placeholders if needed (optional)
+      setPhotos([...transformed, ...INITIAL_PHOTOS]);
+    } catch (err) {
+      console.error('Error fetching photos:', err.message);
+      setPhotos(INITIAL_PHOTOS); // Fallback
+    }
+  };
 
   // ── Handlers ───────────────────────────────────────────────
 
@@ -209,21 +243,50 @@ function App() {
     }, 50);
   };
 
-  const handleToggleLike = useCallback((photoId) => {
-    if (!currentUser) return; // must be logged in
-    const { count, isLiked } = storageToggleLike(photoId, currentUser.id);
-    setPhotos(prev => prev.map(photo => {
-      if (photo.id === photoId) {
-        const baseLikes = photo.baseLikes ?? 0;
-        return { ...photo, likes: baseLikes + count, isLiked };
-      }
-      return photo;
-    }));
-  }, [currentUser]);
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
+    setCurrentUser(null);
+    setPhotos(prev => prev.map(p => ({ ...p, isLiked: false })));
+  }, []);
 
-  const handleAddPhoto = useCallback((newPhoto) => {
-    addUpload(newPhoto);
-    setPhotos(prev => [{ ...newPhoto, likes: 0, isLiked: false }, ...prev]);
+  const handleToggleLike = useCallback(async (photoId) => {
+    if (!currentUser) return;
+
+    try {
+      const isCurrentlyLiked = photos.find(p => p.id === photoId)?.isLiked;
+      
+      if (isCurrentlyLiked) {
+        // Unlike
+        await supabase
+          .from('likes')
+          .delete()
+          .match({ user_id: currentUser.id, photo_id: photoId });
+      } else {
+        // Like
+        await supabase
+          .from('likes')
+          .insert({ user_id: currentUser.id, photo_id: photoId });
+      }
+
+      // Refresh local state (simplified)
+      setPhotos(prev => prev.map(photo => {
+        if (photo.id === photoId) {
+          return { 
+            ...photo, 
+            likes: isCurrentlyLiked ? photo.likes - 1 : photo.likes + 1, 
+            isLiked: !isCurrentlyLiked 
+          };
+        }
+        return photo;
+      }));
+    } catch (err) {
+      console.error('Like toggle failed:', err.message);
+    }
+  }, [currentUser, photos]);
+
+  const handleAddPhoto = useCallback(() => {
+    // Photos now fetch automatically from Supabase via fetchPhotos
+    fetchPhotos();
   }, []);
 
   const handleDownload = useCallback((photo) => {
@@ -233,9 +296,20 @@ function App() {
     downloadImage(photo.url, `${safeName}.jpg`);
   }, []);
 
-  const handleDeletePhoto = useCallback((photoId) => {
-    deleteUpload(photoId);
-    setPhotos(prev => prev.filter(p => p.id !== photoId));
+  const handleDeletePhoto = useCallback(async (photoId) => {
+    if (!window.confirm('Delete this masterpiece? This cannot be undone.')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('photos')
+        .delete()
+        .match({ id: photoId });
+
+      if (error) throw error;
+      setPhotos(prev => prev.filter(p => p.id !== photoId));
+    } catch (err) {
+      console.error('Delete failed:', err.message);
+    }
   }, []);
 
   return (

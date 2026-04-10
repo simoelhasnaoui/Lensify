@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Github, Chrome, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createAccount, loginAccount } from '../utils/storage';
-import { useGoogleLogin } from '@react-oauth/google';
+import { supabase } from '../utils/supabase';
 
 const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }) => {
     const [isLoginMode, setIsLoginMode] = useState(initialMode === 'login');
@@ -27,7 +26,7 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }) => {
         setShowPassword(false);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccessMsg('');
@@ -57,18 +56,22 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }) => {
 
         try {
             if (isLoginMode) {
-                const account = loginAccount({
+                const { data, error } = await supabase.auth.signInWithPassword({
                     email: formData.email,
                     password: formData.password,
                 });
-                onLogin(account);
+                if (error) throw error;
+                onLogin(data.user);
             } else {
-                const account = createAccount({
-                    name: formData.name,
+                const { data, error } = await supabase.auth.signUp({
                     email: formData.email,
                     password: formData.password,
+                    options: {
+                        data: { name: formData.name }
+                    }
                 });
-                onLogin(account);
+                if (error) throw error;
+                onLogin(data.user);
             }
             resetForm();
             onClose();
@@ -77,66 +80,28 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }) => {
         }
     };
 
-    const handleSocialAuth = (provider) => {
-        const email = `user@${provider.toLowerCase()}.com`;
-        const password = 'social_mock_password';
-        
+    const handleGoogleLogin = async () => {
         try {
-            // Try to log in first
-            const account = loginAccount({ email, password });
-            onLogin(account);
-            resetForm();
-            onClose();
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin
+                }
+            });
+            if (error) throw error;
         } catch (err) {
-            try {
-                // If account doesn't exist, create it
-                const account = createAccount({
-                    name: `${provider} User`,
-                    email: email,
-                    password: password
-                });
-                onLogin(account);
-                resetForm();
-                onClose();
-            } catch (createErr) {
-                setError(createErr.message);
-            }
+            setError('Google Login Failed: ' + err.message);
         }
     };
 
-    const loginWithGoogle = useGoogleLogin({
-        onSuccess: async (tokenResponse) => {
-            try {
-                const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                });
-                const data = await res.json();
-                
-                const { email, name, picture } = data;
-                const password = 'google_oauth_password';
-
-                try {
-                    const account = loginAccount({ email, password });
-                    // Always try to update with latest real Google avatar dynamically
-                    account.avatar = picture || account.avatar; 
-                    onLogin(account);
-                } catch (err) {
-                    const account = createAccount({
-                        name: name || 'Google User',
-                        email: email,
-                        password: password
-                    });
-                    account.avatar = picture || account.avatar;
-                    onLogin(account);
-                }
-                resetForm();
-                onClose();
-            } catch (err) {
-                setError('Failed to securely fetch Google profile: ' + err.message);
-            }
-        },
-        onError: () => setError('Google Login Failed')
-    });
+    // Deprecated mock helpers removed in favor of Supabase logic
+    const handleSocialAuth = (provider) => {
+        if (provider === 'Google') {
+            handleGoogleLogin();
+        } else {
+            setError(`${provider} login is not configured yet.`);
+        }
+    };
 
     const socialButtons = [
         { icon: <Chrome size={20} />, label: 'Google', color: '#ea4335' },
@@ -194,7 +159,7 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }) => {
                                                     transition: 'var(--transition-smooth)'
                                                 }}
                                                 className="nav-link"
-                                                onClick={() => btn.label === 'Google' ? loginWithGoogle() : handleSocialAuth(btn.label)}
+                                                onClick={() => handleSocialAuth(btn.label)}
                                             >
                                                 {btn.icon}
                                                 <span>{btn.label}</span>

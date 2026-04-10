@@ -2,13 +2,7 @@ import React from 'react';
 import { Settings, Share2, MapPin, Link as LinkIcon, Camera } from 'lucide-react';
 import PhotoCard from './PhotoCard';
 
-const UserProfile = ({ user, onBack }) => {
-    // Mock photos for this user
-    const userPhotos = [
-        { id: 101, url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80', title: 'Mountain Lake', userName: user.name, userAvatar: user.avatar },
-        { id: 102, url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80', title: 'Misty Peaks', userName: user.name, userAvatar: user.avatar },
-        { id: 103, url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80', title: 'Forest Sun', userName: user.name, userAvatar: user.avatar },
-    ];
+const UserProfile = ({ user, onBack, userPhotos }) => {
 
     return (
         <div className="profile-page">

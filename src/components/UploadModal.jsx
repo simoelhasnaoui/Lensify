@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Upload, Info, Image as ImageIcon, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../utils/supabase';
 
 const UploadModal = ({ isOpen, onClose, onUpload, currentUser }) => {
     const [step, setStep] = useState(1); // 1: Select, 2: Details, 3: Success
@@ -10,6 +11,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, currentUser }) => {
     const [tags, setTags] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState(null);
+    const [file, setFile] = useState(null);
     const fileInputRef = useRef(null);
 
     const categories = ['Nature', 'Architecture', 'Street', 'Portrait', 'Travel'];
@@ -38,6 +40,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, currentUser }) => {
             }
 
             setError(null);
+            setFile(selectedFile);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreview(reader.result);
@@ -47,35 +50,52 @@ const UploadModal = ({ isOpen, onClose, onUpload, currentUser }) => {
         }
     };
 
-    const handleUploadClick = () => {
-        if (!title.trim()) {
-            setError("Please provide a title for your photo.");
+    const handleUploadClick = async () => {
+        if (!title.trim() || !file) {
+            setError("Please provide a title and select a photo.");
             return;
         }
 
         setIsUploading(true);
         setError(null);
 
-        // Simulate upload delay
-        setTimeout(() => {
-            const newPhoto = {
-                id: Date.now(),
-                url: preview,
-                title: title,
-                userName: currentUser?.name || 'Guest User',
-                userAvatar: currentUser?.avatar || 'https://i.pravatar.cc/150?u=guest',
-                userId: currentUser?.id || 'guest',
-                category: category,
-                tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
-                likes: 0,
-                isLiked: false,
-                uploadDate: new Date().toISOString()
-            };
+        try {
+            // 1. Upload to Supabase Storage
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const filePath = `${currentUser.id}/${fileName}`;
 
-            onUpload(newPhoto);
+            const { error: uploadError } = await supabase.storage
+                .from('photos')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('photos')
+                .getPublicUrl(filePath);
+
+            // 3. Insert into Database
+            const { error: dbError } = await supabase
+                .from('photos')
+                .insert({
+                    user_id: currentUser.id,
+                    url: publicUrl,
+                    title: title,
+                    category: category,
+                    tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
+                });
+
+            if (dbError) throw dbError;
+
+            onUpload(); // Triggers refresh in App.js
             setIsUploading(false);
             setStep(3);
-        }, 2000);
+        } catch (err) {
+            setError(err.message);
+            setIsUploading(false);
+        }
     };
 
     const handleDragOver = (e) => {
