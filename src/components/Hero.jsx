@@ -1,7 +1,7 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 
-const Hero = ({ onTagClick }) => {
+const Hero = ({ onTagClick, onSearch }) => {
     return (
         <section className="hero-section">
             <div className="hero-overlay" />
@@ -15,6 +15,13 @@ const Hero = ({ onTagClick }) => {
                         type="text"
                         placeholder="Search everything"
                         className="hero-search-input"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                onSearch && onSearch(e.currentTarget.value);
+                                e.currentTarget.value = '';
+                                e.currentTarget.blur();
+                            }
+                        }}
                     />
                 </div>
 

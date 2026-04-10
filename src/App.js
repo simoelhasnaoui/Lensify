@@ -177,6 +177,7 @@ function App() {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // ── Handlers ───────────────────────────────────────────────
 
@@ -190,11 +191,22 @@ function App() {
     setCurrentView('discovery');
     setSelectedProfile(null);
     setActiveFilter('All');
+    setSearchQuery('');
   };
 
   const handleNavigate = (view) => {
     setCurrentView(view);
     window.scrollTo(0, 0);
+  };
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (currentView !== 'discovery') {
+      setCurrentView('discovery');
+    }
+    setTimeout(() => {
+       document.querySelector('.photo-grid-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
   };
 
   const handleToggleLike = useCallback((photoId) => {
@@ -232,6 +244,7 @@ function App() {
         onUploadClick={() => setIsUploadOpen(true)}
         onHomeClick={handleBackHome}
         onNavigate={handleNavigate}
+        onSearch={handleSearch}
         currentUser={currentUser}
         onLogin={handleLogin}
         onLogout={handleLogout}
@@ -244,11 +257,13 @@ function App() {
                 setActiveFilter(tag);
                 document.querySelector('.photo-grid-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
+              onSearch={handleSearch}
             />
             <PhotoGrid
               photos={photos}
               activeFilter={activeFilter}
               setActiveFilter={setActiveFilter}
+              searchQuery={searchQuery}
               onProfileClick={handleProfileClick}
               onToggleLike={handleToggleLike}
               onDownload={handleDownload}

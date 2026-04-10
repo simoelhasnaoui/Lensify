@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PhotoCard from './PhotoCard';
 import PhotoDetail from './PhotoDetail';
 
-const PhotoGrid = ({ photos, activeFilter, setActiveFilter, onProfileClick, onToggleLike, onDownload, onDelete, currentUser }) => {
+const PhotoGrid = ({ photos, activeFilter, setActiveFilter, searchQuery, onProfileClick, onToggleLike, onDownload, onDelete, currentUser }) => {
     const [selectedPhoto, setSelectedPhoto] = useState(null);
 
     const handlePhotoClick = (photo) => {
@@ -24,9 +24,22 @@ const PhotoGrid = ({ photos, activeFilter, setActiveFilter, onProfileClick, onTo
 
     const filters = ['All', ...new Set(photos.map(photo => photo.category).filter(Boolean))];
 
-    const filteredPhotos = activeFilter === 'All'
-        ? photos
-        : photos.filter(photo => photo.category === activeFilter);
+    const filteredPhotos = photos.filter(photo => {
+        // 1. Filter by category
+        if (activeFilter !== 'All' && photo.category !== activeFilter) {
+            return false;
+        }
+        // 2. Filter by search query
+        if (searchQuery && searchQuery.trim() !== '') {
+            const query = searchQuery.toLowerCase().trim();
+            const matchesTitle = photo.title?.toLowerCase().includes(query);
+            const matchesUser = photo.userName?.toLowerCase().includes(query);
+            const matchesTag = photo.tags?.some(tag => tag.toLowerCase().includes(query));
+            const matchesCategory = photo.category?.toLowerCase().includes(query);
+            return matchesTitle || matchesUser || matchesTag || matchesCategory;
+        }
+        return true;
+    });
 
     // Sync selected photo with updated global state (needed for live like updates in modal)
     const currentSelectedPhoto = selectedPhoto ? photos.find(p => p.id === selectedPhoto.id) : null;

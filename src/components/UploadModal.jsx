@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const UploadModal = ({ isOpen, onClose, onUpload, currentUser }) => {
     const [step, setStep] = useState(1); // 1: Select, 2: Details, 3: Success
-    const [file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
     const [title, setTitle] = useState('');
     const [category, setCategory] = useState('Nature');
@@ -20,7 +19,6 @@ const UploadModal = ({ isOpen, onClose, onUpload, currentUser }) => {
             // Reset state when modal closes
             setTimeout(() => {
                 setStep(1);
-                setFile(null);
                 setPreview(null);
                 setTitle('');
                 setCategory('Nature');
@@ -39,7 +37,6 @@ const UploadModal = ({ isOpen, onClose, onUpload, currentUser }) => {
                 return;
             }
 
-            setFile(selectedFile);
             setError(null);
             const reader = new FileReader();
             reader.onloadend = () => {

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Menu, MessageSquare, Bell, Upload } from 'lucide-react';
+import { Search, Bell, Upload } from 'lucide-react';
 import Logo from './Logo';
 import AuthModal from './AuthModal';
 
-const Navbar = ({ onUploadClick, onHomeClick, onNavigate, currentUser, onLogin, onLogout }) => {
+const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser, onLogin, onLogout }) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [authMode, setAuthMode] = useState('login');
@@ -56,6 +56,13 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, currentUser, onLogin, 
                         type="text"
                         placeholder="Search Lensify"
                         className="search-input"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                onSearch && onSearch(e.currentTarget.value);
+                                e.currentTarget.value = '';
+                                e.currentTarget.blur();
+                            }
+                        }}
                     />
                 </div>
 
