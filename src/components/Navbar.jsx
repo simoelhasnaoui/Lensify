@@ -68,7 +68,7 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
                     />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                <div className="md-hide" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                     <button
                         onClick={() => handleProtectedAction(onUploadClick)}
                         className="nav-link"
@@ -191,16 +191,16 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
                             </div>
                         </div>
                     )}
+                </div>
 
-                    <div className="md-show">
-                        <button 
-                            className="nav-link" 
-                            style={{ padding: '0.5rem' }}
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        >
-                            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
-                    </div>
+                <div className="md-show">
+                    <button 
+                        className="nav-link" 
+                        style={{ padding: '0.5rem' }}
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
+                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
                 </div>
             </nav>
 

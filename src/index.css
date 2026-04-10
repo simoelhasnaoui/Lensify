@@ -19,6 +19,13 @@
   padding: 0;
 }
 
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -58,20 +65,31 @@ button {
 
 /* Visibility Utilities */
 .md-hide {
-  @media (max-width: 768px) {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .md-hide {
     display: none !important;
   }
 }
 
 .md-show {
   display: none !important;
-  @media (max-width: 768px) {
+}
+
+@media (max-width: 768px) {
+  .md-show {
     display: flex !important;
   }
 }
 
 .sm-hide {
-  @media (max-width: 480px) {
+  display: flex;
+}
+
+@media (max-width: 480px) {
+  .sm-hide {
     display: none !important;
   }
 }
@@ -145,6 +163,7 @@ button {
 
 /* Hero Section */
 .hero-section {
+  width: 100%;
   height: 85vh;
   position: relative;
   display: flex;
@@ -273,6 +292,14 @@ button {
 .grid-filters {
   display: flex;
   gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+
+.grid-filters::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
 .filter-btn {
