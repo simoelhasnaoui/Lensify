@@ -284,6 +284,14 @@ button {
   margin-bottom: 2rem;
 }
 
+@media (max-width: 768px) {
+  .grid-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+}
+
 .grid-title {
   font-size: 1.5rem;
   font-weight: 700;
@@ -305,6 +313,7 @@ button {
     margin-left: 0;
     margin-top: 1rem;
     max-width: 100%;
+    justify-content: center;
     mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
     -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
   }
