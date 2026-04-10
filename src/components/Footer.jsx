@@ -40,10 +40,12 @@ const Footer = () => {
 
                 <div className="footer-bottom">
                     <p className="copyright">&copy; 2026 Lensify. All rights reserved.</p>
-                    <div className="social-links">
-                        <a href="/">Twitter</a>
-                        <a href="/">Facebook</a>
-                        <a href="/">Instagram</a>
+                    <div className="social-links" style={{ flexWrap: 'wrap', gap: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '2rem' }}>
+                            <a href="/">Twitter</a>
+                            <a href="/">Facebook</a>
+                            <a href="/">Instagram</a>
+                        </div>
                         <button
                             onClick={() => {
                                 if (window.confirm('Are you sure you want to reset all app data (uploads, accounts, likes)?')) {
@@ -52,7 +54,7 @@ const Footer = () => {
                                 }
                             }}
                             className="nav-link"
-                            style={{ fontSize: '0.8rem', color: '#ff4b2b', marginLeft: '1rem' }}
+                            style={{ fontSize: '0.8rem', color: '#ff4b2b' }}
                         >
                             Reset App Data
                         </button>
