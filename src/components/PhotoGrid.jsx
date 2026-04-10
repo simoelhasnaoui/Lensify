@@ -1,9 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PhotoCard from './PhotoCard';
 import PhotoDetail from './PhotoDetail';
 
 const PhotoGrid = ({ photos, activeFilter, setActiveFilter, searchQuery, onProfileClick, onToggleLike, onDownload, onDelete, currentUser }) => {
     const [selectedPhoto, setSelectedPhoto] = useState(null);
+    const scrollRef = useRef(null);
+    const [showLeftArrow, setShowLeftArrow] = useState(false);
+    const [showRightArrow, setShowRightArrow] = useState(true);
+
+    const checkScroll = () => {
+        if (scrollRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+            setShowLeftArrow(scrollLeft > 20);
+            setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 20);
+        }
+    };
+
+    useEffect(() => {
+        const currentRef = scrollRef.current;
+        if (currentRef) {
+            currentRef.addEventListener('scroll', checkScroll);
+            // Initial check
+            checkScroll();
+            // Also check on window resize
+            window.addEventListener('resize', checkScroll);
+        }
+        return () => {
+            if (currentRef) {
+                currentRef.removeEventListener('scroll', checkScroll);
+                window.removeEventListener('resize', checkScroll);
+            }
+        };
+    }, []);
+
+    const scroll = (direction) => {
+        if (scrollRef.current) {
+            const scrollAmount = 200;
+            scrollRef.current.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     const handlePhotoClick = (photo) => {
         setSelectedPhoto(photo);
@@ -49,7 +88,17 @@ const PhotoGrid = ({ photos, activeFilter, setActiveFilter, searchQuery, onProfi
             <div className="grid-header">
                 <h2 className="grid-title">Editor's Choice</h2>
                 <div className="filters-container">
-                    <div className="grid-filters">
+                    {showLeftArrow && (
+                        <button 
+                            className="scroll-arrow left" 
+                            onClick={() => scroll('left')}
+                            aria-label="Scroll left"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                    )}
+                    
+                    <div className="grid-filters" ref={scrollRef}>
                         {filters.map(filter => (
                             <button
                                 key={filter}
@@ -60,6 +109,16 @@ const PhotoGrid = ({ photos, activeFilter, setActiveFilter, searchQuery, onProfi
                             </button>
                         ))}
                     </div>
+
+                    {showRightArrow && (
+                        <button 
+                            className="scroll-arrow right" 
+                            onClick={() => scroll('right')}
+                            aria-label="Scroll right"
+                        >
+                            <ChevronRight size={20} />
+                        </button>
+                    )}
                 </div>
             </div>
 

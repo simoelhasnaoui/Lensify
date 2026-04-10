@@ -304,8 +304,8 @@ button {
   margin-left: 2rem;
   display: flex;
   align-items: center;
-  mask-image: linear-gradient(to right, black 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  /* Add padding to the container to avoid mask clipping arrows */
+  padding: 0 10px;
 }
 
 @media (max-width: 768px) {
@@ -314,9 +314,41 @@ button {
     margin-top: 1rem;
     max-width: 100%;
     justify-content: center;
-    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    padding: 0;
   }
+}
+
+.scroll-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  z-index: 10;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.scroll-arrow:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.scroll-arrow.left {
+  left: -5px;
+}
+
+.scroll-arrow.right {
+  right: -5px;
 }
 
 .grid-filters {
@@ -327,6 +359,9 @@ button {
   padding: 0.5rem 0;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  /* Apply mask to the actual scrollable element */
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
 }
 
 .grid-filters::-webkit-scrollbar {
