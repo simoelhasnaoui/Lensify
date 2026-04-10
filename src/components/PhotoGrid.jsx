@@ -48,16 +48,18 @@ const PhotoGrid = ({ photos, activeFilter, setActiveFilter, searchQuery, onProfi
         <section className="photo-grid-section container">
             <div className="grid-header">
                 <h2 className="grid-title">Editor's Choice</h2>
-                <div className="grid-filters">
-                    {filters.map(filter => (
-                        <button
-                            key={filter}
-                            className={`filter-btn ${activeFilter === filter ? 'active' : ''}`}
-                            onClick={() => setActiveFilter(filter)}
-                        >
-                            {filter}
-                        </button>
-                    ))}
+                <div className="filters-container">
+                    <div className="grid-filters">
+                        {filters.map(filter => (
+                            <button
+                                key={filter}
+                                className={`filter-btn ${activeFilter === filter ? 'active' : ''}`}
+                                onClick={() => setActiveFilter(filter)}
+                            >
+                                {filter}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 

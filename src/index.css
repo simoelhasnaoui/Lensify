@@ -289,17 +289,39 @@ button {
   font-weight: 700;
 }
 
+.filters-container {
+  position: relative;
+  flex: 1;
+  max-width: 600px;
+  margin-left: 2rem;
+  display: flex;
+  align-items: center;
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+@media (max-width: 768px) {
+  .filters-container {
+    margin-left: 0;
+    margin-top: 1rem;
+    max-width: 100%;
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+}
+
 .grid-filters {
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
-  padding-bottom: 5px;
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  scrollbar-width: none; /* Firefox */
+  white-space: nowrap;
+  padding: 0.5rem 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .grid-filters::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  display: none;
 }
 
 .filter-btn {
