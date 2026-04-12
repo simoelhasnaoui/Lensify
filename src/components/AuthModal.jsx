@@ -82,14 +82,20 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }) => {
 
     const handleGoogleLogin = async () => {
         try {
+            console.log('[Auth] Initiating Google Login...');
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin
+                    redirectTo: window.location.origin,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    },
                 }
             });
             if (error) throw error;
         } catch (err) {
+            console.error('[Auth] Google Login Error:', err.message);
             setError('Google Login Failed: ' + err.message);
         }
     };

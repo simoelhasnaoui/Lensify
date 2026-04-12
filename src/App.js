@@ -7,10 +7,9 @@ import UploadModal from './components/UploadModal';
 import Licensing from './components/Licensing';
 import Quests from './components/Quests';
 import Footer from './components/Footer';
-import { 
-  downloadImage 
-} from './utils/storage';
+import { downloadImage } from './utils/storage';
 import { supabase } from './utils/supabase';
+import SettingsPage from './components/Settings';
 import './App.css';
 
 const INITIAL_PHOTOS = [
@@ -130,6 +129,7 @@ const INITIAL_PHOTOS = [
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   
   const handleLogin = useCallback(() => {
     // Auth state is handled by onAuthStateChange listener
@@ -145,29 +145,38 @@ function App() {
   // ── Supabase Initialization ────────────────────────────────
   React.useEffect(() => {
     // 1. Check for active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('[Auth] Initial session check:', session ? 'Found' : 'Not found');
+      if (error) console.error('[Auth] Session check error:', error.message);
+      
       if (session?.user) {
+        const metadata = session.user.user_metadata;
         const user = {
           id: session.user.id,
-          name: session.user.user_metadata.name || session.user.email,
-          avatar: session.user.user_metadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+          name: metadata.full_name || metadata.name || session.user.email,
+          avatar: metadata.avatar_url || metadata.picture || null
         };
         setCurrentUser(user);
       }
+      setAuthLoading(false);
     });
 
     // 2. Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`[Auth] Event: ${event}`, session ? 'User present' : 'No user');
+      
       if (session?.user) {
+        const metadata = session.user.user_metadata;
         const user = {
           id: session.user.id,
-          name: session.user.user_metadata.name || session.user.email,
-          avatar: session.user.user_metadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+          name: metadata.full_name || metadata.name || session.user.email,
+          avatar: metadata.avatar_url || metadata.picture || null
         };
         setCurrentUser(user);
       } else {
         setCurrentUser(null);
       }
+      setAuthLoading(false);
     });
 
     // 3. Initial photos fetch
@@ -201,6 +210,7 @@ function App() {
         category: p.category,
         tags: p.tags || [],
         likes: p.likes?.length || 0,
+        views: p.views || 0,
         isLiked: p.likes?.some(l => l.user_id === userId) || false,
         userId: p.user_id
       }));
@@ -229,8 +239,32 @@ function App() {
   };
 
   const handleNavigate = (view) => {
-    setCurrentView(view);
+    if (view === 'profile_me' && currentUser) {
+      setSelectedProfile(currentUser);
+      setCurrentView('profile');
+    } else {
+      setCurrentView(view);
+    }
     window.scrollTo(0, 0);
+  };
+
+  const handleUpdateProfile = (updatedUser) => {
+    setCurrentUser(updatedUser);
+  };
+
+  const handleIncrementView = async (photoId) => {
+    try {
+      // Manual increment fallback if RPC is not available
+      const { data: currentPhoto } = await supabase.from('photos').select('views').eq('id', photoId).single();
+      const newViewCount = (currentPhoto?.views || 0) + 1;
+      
+      await supabase.from('photos').update({ views: newViewCount }).eq('id', photoId);
+
+      // Update local state
+      setPhotos(prev => prev.map(p => p.id === photoId ? { ...p, views: newViewCount } : p));
+    } catch (err) {
+      console.error('Failed to increment views:', err);
+    }
   };
 
   const handleSearch = (query) => {
@@ -312,6 +346,17 @@ function App() {
     }
   }, []);
 
+  if (authLoading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: '#0866ff' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="animate-spin" style={{ width: '40px', height: '40px', border: '4px solid #0866ff', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto 1.5rem' }} />
+          <p style={{ fontWeight: 600, letterSpacing: '0.1em' }}>LENSIFY</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
       <Navbar
@@ -343,17 +388,26 @@ function App() {
               onDownload={handleDownload}
               onDelete={handleDeletePhoto}
               currentUser={currentUser}
+              onViewIncrement={handleIncrementView}
             />
           </>
         ) : currentView === 'licensing' ? (
           <Licensing />
         ) : currentView === 'quests' ? (
           <Quests />
+        ) : currentView === 'settings' && currentUser ? (
+          <SettingsPage 
+            currentUser={currentUser} 
+            onBack={handleBackHome} 
+            onUpdateProfile={handleUpdateProfile}
+          />
         ) : (
           <UserProfile
             user={selectedProfile}
             onBack={handleBackHome}
             userPhotos={photos.filter(p => p.userName === selectedProfile.name)}
+            isCurrentUser={currentUser?.id === selectedProfile?.id}
+            onSettingsClick={() => setCurrentView('settings')}
           />
         )}
       </main>

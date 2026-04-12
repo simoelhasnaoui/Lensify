@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PhotoCard from './PhotoCard';
 import PhotoDetail from './PhotoDetail';
 
-const PhotoGrid = ({ photos, activeFilter, setActiveFilter, searchQuery, onProfileClick, onToggleLike, onDownload, onDelete, currentUser }) => {
+const PhotoGrid = ({ photos, activeFilter, setActiveFilter, searchQuery, onProfileClick, onToggleLike, onDownload, onDelete, currentUser, onViewIncrement }) => {
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const scrollRef = useRef(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -147,6 +147,7 @@ const PhotoGrid = ({ photos, activeFilter, setActiveFilter, searchQuery, onProfi
                 onDownload={onDownload}
                 onDelete={handleDelete}
                 currentUser={currentUser}
+                onViewIncrement={onViewIncrement}
             />
         </section>
     );

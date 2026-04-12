@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Upload, Menu, X } from 'lucide-react';
+import { Search, Bell, Upload, Menu, X, CircleUser } from 'lucide-react';
 import Logo from './Logo';
 import AuthModal from './AuthModal';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -142,7 +142,6 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
                                 )}
                             </div>
 
-                            <div style={{ position: 'relative' }}>
                                 <div
                                     onClick={() => {
                                         setIsDropdownOpen(!isDropdownOpen);
@@ -152,12 +151,29 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
                                         width: '32px',
                                         height: '32px',
                                         borderRadius: '50%',
-                                        backgroundImage: `url(${currentUser.avatar})`,
-                                        backgroundSize: 'cover',
                                         border: '1px solid rgba(255,255,255,0.1)',
-                                        cursor: 'pointer'
+                                        cursor: 'pointer',
+                                        overflow: 'hidden',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: currentUser.avatar ? 'none' : 'rgba(255,255,255,0.05)'
                                     }}
-                                />
+                                >
+                                    {currentUser.avatar ? (
+                                        <div 
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                backgroundImage: `url(${currentUser.avatar})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center'
+                                            }}
+                                        />
+                                    ) : (
+                                        <CircleUser size={20} color="#888" />
+                                    )}
+                                </div>
                                 {isDropdownOpen && (
                                     <div className="glass" style={{
                                         position: 'absolute',
@@ -174,8 +190,26 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
                                             <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{currentUser.name}</p>
                                             <p style={{ fontSize: '0.75rem', color: '#666' }}>Pro Member</p>
                                         </div>
-                                        <button className="nav-link" style={{ width: '100%', textAlign: 'left', padding: '0.75rem 1rem' }}>Profile</button>
-                                        <button className="nav-link" style={{ width: '100%', textAlign: 'left', padding: '0.75rem 1rem' }}>Settings</button>
+                                        <button 
+                                            className="nav-link" 
+                                            style={{ width: '100%', textAlign: 'left', padding: '0.75rem 1rem' }}
+                                            onClick={() => {
+                                                onNavigate && onNavigate('profile_me');
+                                                setIsDropdownOpen(false);
+                                            }}
+                                        >
+                                            Profile
+                                        </button>
+                                        <button 
+                                            className="nav-link" 
+                                            style={{ width: '100%', textAlign: 'left', padding: '0.75rem 1rem' }}
+                                            onClick={() => {
+                                                onNavigate && onNavigate('settings');
+                                                setIsDropdownOpen(false);
+                                            }}
+                                        >
+                                            Settings
+                                        </button>
                                         <button
                                             onClick={() => {
                                                 onLogout();
@@ -189,7 +223,6 @@ const Navbar = ({ onUploadClick, onHomeClick, onNavigate, onSearch, currentUser,
                                     </div>
                                 )}
                             </div>
-                        </div>
                     )}
                 </div>
 

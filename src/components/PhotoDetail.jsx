@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Heart, Plus, Download, Share2, MessageCircle, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const PhotoDetail = ({ photo, isOpen, onClose, onProfileClick, onToggleLike, onDownload, onDelete, currentUser }) => {
+const PhotoDetail = ({ photo, isOpen, onClose, onProfileClick, onToggleLike, onDownload, onDelete, currentUser, onViewIncrement }) => {
+    
+    useEffect(() => {
+        if (isOpen && photo && onViewIncrement) {
+            onViewIncrement(photo.id);
+        }
+    }, [isOpen, photo?.id]);
+
     if (!photo) return null;
 
     return (
@@ -34,7 +41,7 @@ const PhotoDetail = ({ photo, isOpen, onClose, onProfileClick, onToggleLike, onD
                                     <div
                                         className="photographer-info"
                                         style={{ cursor: 'pointer' }}
-                                        onClick={() => onProfileClick({ name: photo.userName, avatar: photo.userAvatar })}
+                                        onClick={() => onProfileClick({ id: photo.userId, name: photo.userName, avatar: photo.userAvatar })}
                                     >
                                         <div className="photographer-avatar" style={{ backgroundImage: `url(${photo.userAvatar})` }} />
                                         <div className="photographer-details">
@@ -61,7 +68,7 @@ const PhotoDetail = ({ photo, isOpen, onClose, onProfileClick, onToggleLike, onD
                                     </button>
                                 </div>
 
-                                {currentUser && (photo.userId === currentUser.id || photo.userName === currentUser.name) && (
+                                {currentUser && photo.userId === currentUser.id && (
                                     <div className="sidebar-actions" style={{ marginTop: '-1.5rem' }}>
                                         <button
                                             className="action-btn"
@@ -76,12 +83,12 @@ const PhotoDetail = ({ photo, isOpen, onClose, onProfileClick, onToggleLike, onD
                                 <div className="photo-info">
                                     <h2 className="photo-title-lg">{photo.title}</h2>
                                     <p className="photo-description">
-                                        Captured during the golden hour in the heart of the mountains. A moment of pure serenity.
+                                        Captured by {photo.userName}. Explore more from this category: {photo.category}.
                                     </p>
 
                                     <div className="photo-stats">
                                         <div className="stat">
-                                            <span className="stat-value">{(photo.likes * 10.4).toFixed(1).replace('.0', '')}k</span>
+                                            <span className="stat-value">{photo.views >= 1000 ? `${(photo.views / 1000).toFixed(1)}k` : photo.views}</span>
                                             <span className="stat-label">Views</span>
                                         </div>
                                         <div className="stat">
